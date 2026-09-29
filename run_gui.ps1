@@ -6,19 +6,32 @@ if (-not (Test-Path ".venv\Scripts\python.exe")) {
 }
 uv pip install -r requirements.txt --python ".venv\Scripts\python.exe"
 
-# デフォルトはローカルホストのみ。LAN 公開する場合は HOST_BIND=0.0.0.0 に設定
-$HostBind = if ($Env:HOST_BIND) { $Env:HOST_BIND } else { "127.0.0.1" }
-$Port = if ($Env:PORT) { $Env:PORT } else { "8100" }
+function Get-ConfigValue([string]$Name, [string]$Default) {
+    $v = [Environment]::GetEnvironmentVariable($Name)
+    if ($null -eq $v) { return $Default }
+    $v = $v.Trim()
+    if ($v.Length -eq 0) { return $Default }
+    return $v
+}
 
-# LLM / ComfyUI の port・URL・パスは環境変数で上書き可 (例: $Env:LLM_PORT=9999)
-#   LLM_HOST, LLM_PORT, LLAMA_BASE, LMSTUDIO_BASE, COMFY_URL
-#   LLAMA_SERVER, LLM_MODEL, LLM_ALIAS (llama-server 管理起動用)
+# Default is loopback only. Set HOST_BIND=0.0.0.0 to expose the GUI on the LAN.
+$HostBind = Get-ConfigValue "HOST_BIND" "127.0.0.1"
+$Port = Get-ConfigValue "PORT" "8100"
+$LlamaBase = Get-ConfigValue "LLAMA_BASE" "http://127.0.0.1:8080/v1"
+$LmstudioBase = Get-ConfigValue "LMSTUDIO_BASE" "http://127.0.0.1:1234/v1"
+$ComfyUrl = Get-ConfigValue "COMFY_URL" "http://localhost:8000"
+
+# LLM / ComfyUI can also be overridden by environment variables:
+#   LLM_HOST, LLM_PORT, LLAMA_SERVER, LLM_MODEL, LLM_ALIAS
 
 $py = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
-$proc = Start-Process -FilePath $py -ArgumentList @("-m","uvicorn","app.server:app","--host",$HostBind,"--port",$Port) -WorkingDirectory $PSScriptRoot -PassThru
+$argList = @("-m", "uvicorn", "app.server:app", "--host", [string]$HostBind, "--port", [string]$Port)
+$proc = Start-Process -FilePath $py -ArgumentList $argList -WorkingDirectory $PSScriptRoot -PassThru
+
 Write-Host "GUI server starting (PID $($proc.Id))... http://${HostBind}:${Port}"
-Write-Host "LLAMA_BASE=" + $(if ($Env:LLAMA_BASE) { $Env:LLAMA_BASE } else { "http://127.0.0.1:8080/v1" })
-Write-Host "LMSTUDIO_BASE=" + $(if ($Env:LMSTUDIO_BASE) { $Env:LMSTUDIO_BASE } else { "http://127.0.0.1:1234/v1" })
-Write-Host "COMFY_URL=" + $(if ($Env:COMFY_URL) { $Env:COMFY_URL } else { "http://localhost:8000" })
+Write-Host "LLAMA_BASE=$LlamaBase"
+Write-Host "LMSTUDIO_BASE=$LmstudioBase"
+Write-Host "COMFY_URL=$ComfyUrl"
+
 Start-Sleep -Seconds 4
-Start-Process "http://127.0.0.1:${Port}"
+Start-Process "http://127.0.0.1:$Port"
