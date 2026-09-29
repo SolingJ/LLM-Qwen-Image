@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+history.db
+assets/
+llm.log
+.llm_state.json
+opencode.json
+.opencode/
+open_llama.sh
+Qwen_image_2.1_00016.json
+.env
+dist/
+*.zip
+Thumbs.db
+.DS_Store

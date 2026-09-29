@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM Chat GUI</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-head">
+      <h1>LLM Chat</h1>
+      <button id="new-session">+ 新しいセッション</button>
+    </div>
+    <div id="status-bar">
+      <span id="llm-dot" class="dot"></span>
+      <span id="llm-text">LLM 状態確認中…</span>
+      <button id="llm-toggle">…</button>
+    </div>
+    <div id="comfy-text" class="comfy-row">ComfyUI 状態確認中…</div>
+    <div id="settings-box">
+      <button id="settings-toggle">設定</button>
+      <div id="settings-panel" hidden>
+        <label for="system-prompt">システムプロンプト</label>
+        <textarea id="system-prompt" rows="6" placeholder="（デフォルトのシステムプロンプトを使用）"></textarea>
+        <div class="settings-actions">
+          <button id="sp-save" class="primary">保存</button>
+          <button id="sp-reset">デフォルトに戻す</button>
+        </div>
+      </div>
+    </div>
+    <div id="session-list"></div>
+  </aside>
+  <main>
+    <header id="chat-header">
+      <label>チャットモデル:</label>
+      <select id="model-select"></select>
+      <label class="think-toggle">Thinking <input type="checkbox" id="thinking-toggle" checked></label>
+      <label class="think-toggle">max_tokens <input type="number" id="max-tokens" value="4096" min="16" step="16"></label>
+      <span id="model-hint"></span>
+    </header>
+    <div id="chat">
+      <div class="msg assistant"><div class="bubble">こんにちは。質問や指示を入力してください。</div></div>
+    </div>
+    <footer id="composer">
+      <div id="attach-preview"></div>
+      <div id="composer-row">
+        <textarea id="input" rows="2" placeholder="質問や指示を入力… (Enter: 送信 / Shift+Enter: 改行)"></textarea>
+        <button id="attach-btn">添付</button>
+        <button id="send" class="primary">送信</button>
+      </div>
+      <input type="file" id="file-input" accept="image/*" multiple hidden>
+    </footer>
+  </main>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>
