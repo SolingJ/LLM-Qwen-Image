@@ -6,8 +6,8 @@ if (-not (Test-Path ".venv\Scripts\python.exe")) {
 }
 uv pip install -r requirements.txt --python ".venv\Scripts\python.exe"
 
-# 外部公開用: 0.0.0.0 バインド (HOST_BIND / PORT を環境変数で上書き可)
-$HostBind = if ($Env:HOST_BIND) { $Env:HOST_BIND } else { "0.0.0.0" }
+# デフォルトはローカルホストのみ。LAN 公開する場合は HOST_BIND=0.0.0.0 に設定
+$HostBind = if ($Env:HOST_BIND) { $Env:HOST_BIND } else { "127.0.0.1" }
 $Port = if ($Env:PORT) { $Env:PORT } else { "8100" }
 
 # LLM / ComfyUI の port・URL・パスは環境変数で上書き可 (例: $Env:LLM_PORT=9999)

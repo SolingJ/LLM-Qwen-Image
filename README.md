@@ -8,7 +8,8 @@ ComfyUI を使う任意の画像生成機能も含まれます。
 - チャット（OpenAI 互換 API: llama.cpp / LM Studio）
 - thinking 内容の表示・切替（thinking ON/OFF）
 - ボタン操作でのみ実行される任意の画像生成（ComfyUI）と生成進捗表示
-- セッション履歴（SQLite）とセッションの選択削除
+- セッション履歴（SQLite）、セッションの選択削除、メッセージ途中からのfork
+- スマートフォン向けレスポンシブ UI
 - システムプロンプト / max_tokens を UI から設定
 - LLM の起動/停止を GUI から管理
 
@@ -44,7 +45,7 @@ llama-server を別途起動したい場合は `start_llm.ps1` を使えます
 
 | 変数 | デフォルト | 用途 |
 |---|---|---|
-| `HOST_BIND` | `0.0.0.0` | GUI のバインドアドレス |
+| `HOST_BIND` | `127.0.0.1` | GUI のバインドアドレス（LAN 公開には `0.0.0.0`） |
 | `PORT` | `8100` | GUI のポート |
 | `LLM_HOST` | `127.0.0.1` | llama-server のホスト |
 | `LLM_PORT` | `8080` | llama-server のポート |

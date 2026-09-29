@@ -10,7 +10,10 @@
 <div id="app">
   <aside id="sidebar">
     <div class="sidebar-head">
-      <h1>LLM Chat</h1>
+      <div class="sidebar-title">
+        <h1>LLM Chat</h1>
+        <button id="sidebar-close" class="sidebar-close" aria-label="メニューを閉じる">✕</button>
+      </div>
       <button id="new-session">+ 新しいセッション</button>
     </div>
     <div id="status-bar">
@@ -34,6 +37,7 @@
   </aside>
   <main>
     <header id="chat-header">
+      <button id="sidebar-toggle" class="sidebar-toggle" aria-label="メニューを開く">≡</button>
       <label>チャットモデル:</label>
       <select id="model-select"></select>
       <label class="think-toggle">Thinking <input type="checkbox" id="thinking-toggle" checked></label>

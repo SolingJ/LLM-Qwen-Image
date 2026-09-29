@@ -158,6 +158,18 @@ def delete_session(sid: int):
     return {"deleted": sid}
 
 
+class ForkIn(BaseModel):
+    message_id: int
+
+
+@app.post("/api/sessions/{sid}/fork")
+def fork_session(sid: int, in_: ForkIn):
+    new_id = db.fork_session(sid, in_.message_id)
+    if not new_id:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    return {"id": new_id}
+
+
 class ChatIn(BaseModel):
     session_id: int
     message: object

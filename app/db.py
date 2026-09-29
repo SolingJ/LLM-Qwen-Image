@@ -1,9 +1,11 @@
+import shutil
 import sqlite3
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
 DB_PATH = Path(__file__).resolve().parent.parent / "history.db"
+ASSETS_ROOT = DB_PATH.parent / "assets"
 _local = threading.local()
 
 
@@ -109,6 +111,76 @@ def delete_session(session_id: int) -> bool:
     cur = conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
     conn.commit()
     return cur.rowcount > 0
+
+
+def fork_session(source_id: int, message_id: int) -> int | None:
+    conn = _conn()
+    src = conn.execute("SELECT * FROM sessions WHERE id = ?", (source_id,)).fetchone()
+    msg = conn.execute("SELECT * FROM messages WHERE id = ? AND session_id = ?", (message_id, source_id)).fetchone()
+    if not src or not msg:
+        return None
+
+    title = (src["title"] or f"セッション {source_id}") + " (fork)"
+    cur = conn.execute(
+        "INSERT INTO sessions (title, model, created_at) VALUES (?, ?, ?)",
+        (title, src["model"], _now()),
+    )
+    new_id = cur.lastrowid
+
+    rows = conn.execute(
+        "SELECT * FROM messages WHERE session_id = ? AND id <= ? ORDER BY id ASC",
+        (source_id, message_id),
+    ).fetchall()
+
+    old_to_new = {}
+    for m in rows:
+        c = conn.execute(
+            "INSERT INTO messages (session_id, role, content, image_request, tps, tokens, seconds, thinking, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                new_id,
+                m["role"],
+                m["content"],
+                m["image_request"],
+                m["tps"],
+                m["tokens"],
+                m["seconds"],
+                m["thinking"],
+                m["created_at"],
+            ),
+        )
+        old_to_new[m["id"]] = c.lastrowid
+
+    if old_to_new:
+        qs = ",".join("?" for _ in old_to_new)
+        imgs = conn.execute(
+            f"SELECT * FROM images WHERE session_id = ? AND message_id IN ({qs})",
+            [source_id, *old_to_new.keys()],
+        ).fetchall()
+        for im in imgs:
+            new_filename = im["filename"]
+            src_path = ASSETS_ROOT / im["filename"]
+            if src_path.exists():
+                new_filename = f"{new_id}/{Path(im['filename']).name}"
+                dest_path = ASSETS_ROOT / new_filename
+                dest_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src_path, dest_path)
+            conn.execute(
+                "INSERT INTO images (session_id, message_id, prompt_en, seed, steps, cfg, aspect, filename, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    new_id,
+                    old_to_new[im["message_id"]],
+                    im["prompt_en"],
+                    im["seed"],
+                    im["steps"],
+                    im["cfg"],
+                    im["aspect"],
+                    new_filename,
+                    im["created_at"],
+                ),
+            )
+
+    conn.commit()
+    return new_id
 
 
 def list_sessions() -> list[dict]:

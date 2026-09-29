@@ -201,10 +201,40 @@ async function openSession(id) {
       }
       for (const im of imgs) addImageBox(wrap, im);
     }
+    appendForkButton(wrap, m.id);
     chat.appendChild(wrap);
   }
   scroll();
   loadSessions();
+}
+
+function appendForkButton(parentEl, messageId) {
+  const b = document.createElement("button");
+  b.className = "msg-fork";
+  b.textContent = "ここからfork";
+  b.onclick = () => forkFromMessage(messageId);
+  parentEl.appendChild(b);
+}
+
+async function forkFromMessage(messageId) {
+  const source = state.current;
+  if (!source) return;
+  if (state.busy) {
+    alert("チャット中はforkできません");
+    return;
+  }
+  if (!confirm("このメッセージまでを新しいセッションとしてforkしますか？")) return;
+  try {
+    const r = await api(`/api/sessions/${source}/fork`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message_id: messageId }),
+    });
+    state.current = r.id;
+    await openSession(r.id);
+  } catch (e) {
+    alert("fork失敗: " + e);
+  }
 }
 
 function addImageBox(wrap, im) {
@@ -402,6 +432,7 @@ function handleFrame(frame, asstMsg, ab, cs) {
       f.textContent = `${d.tps} tok/s · ${d.tokens} tok · ${d.seconds}s${think}`;
       asstMsg.appendChild(f);
     }
+    if (d.message_id) appendForkButton(asstMsg, d.message_id);
   }
 }
 
@@ -547,6 +578,8 @@ async function pollComfy() {
 // ---------- init ----------
 window.addEventListener("DOMContentLoaded", () => {
   $("send").onclick = send;
+  $("sidebar-toggle").onclick = () => $("app").classList.add("sidebar-open");
+  $("sidebar-close").onclick = () => $("app").classList.remove("sidebar-open");
   $("new-session").onclick = async () => {
     const s = await api("/api/sessions", { method: "POST", body: "{}", headers: { "Content-Type": "application/json" } });
     state.current = s.id;
