@@ -100,9 +100,32 @@ async function loadSessions() {
     meta.className = "meta";
     const d = s.created_at ? new Date(s.created_at) : null;
     meta.textContent = `${d ? d.toLocaleString() : ""} · 画像${s.image_count}`;
-    item.append(t, meta);
+    const del = document.createElement("button");
+    del.className = "session-delete";
+    del.textContent = "削除";
+    del.title = "このセッションを削除";
+    del.onclick = (e) => { e.stopPropagation(); deleteSession(s.id); };
+    item.append(t, meta, del);
     item.onclick = () => openSession(s.id);
     el.appendChild(item);
+  }
+}
+
+async function deleteSession(id) {
+  if (state.busy && state.current === id) {
+    alert("チャット中のセッションは削除できません");
+    return;
+  }
+  if (!confirm(`セッション ${id} を削除しますか？`)) return;
+  try {
+    await api(`/api/sessions/${id}`, { method: "DELETE" });
+    if (state.current === id) {
+      state.current = null;
+      $("chat").innerHTML = "";
+    }
+    loadSessions();
+  } catch (e) {
+    alert("削除失敗: " + e);
   }
 }
 

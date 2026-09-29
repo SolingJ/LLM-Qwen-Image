@@ -3,6 +3,7 @@ import json
 import os
 import random
 import re
+import shutil
 import time
 import uuid
 from pathlib import Path
@@ -138,6 +139,23 @@ def get_session(sid: int):
     if not s:
         return JSONResponse({"error": "not found"}, status_code=404)
     return {"session": s, "messages": db.get_messages(sid), "images": db.get_images(sid)}
+
+
+@app.delete("/api/sessions/{sid}")
+def delete_session(sid: int):
+    if not db.get_session(sid):
+        return JSONResponse({"error": "not found"}, status_code=404)
+    active = [
+        g for g in GENERATIONS.values()
+        if g.get("session_id") == sid and g.get("state") in ("starting", "running")
+    ]
+    if active:
+        return JSONResponse({"error": "generation in progress"}, status_code=409)
+    sdir = ASSETS / str(sid)
+    if sdir.exists():
+        shutil.rmtree(sdir, ignore_errors=True)
+    db.delete_session(sid)
+    return {"deleted": sid}
 
 
 class ChatIn(BaseModel):

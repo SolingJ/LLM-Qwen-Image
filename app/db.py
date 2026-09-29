@@ -102,6 +102,15 @@ def get_session(session_id: int) -> dict | None:
     return dict(row) if row else None
 
 
+def delete_session(session_id: int) -> bool:
+    conn = _conn()
+    conn.execute("DELETE FROM images WHERE session_id = ?", (session_id,))
+    conn.execute("DELETE FROM messages WHERE session_id = ?", (session_id,))
+    cur = conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+    conn.commit()
+    return cur.rowcount > 0
+
+
 def list_sessions() -> list[dict]:
     conn = _conn()
     rows = conn.execute(

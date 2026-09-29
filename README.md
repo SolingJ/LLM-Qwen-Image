@@ -8,7 +8,7 @@ ComfyUI を使う任意の画像生成機能も含まれます。
 - チャット（OpenAI 互換 API: llama.cpp / LM Studio）
 - thinking 内容の表示・切替（thinking ON/OFF）
 - ボタン操作でのみ実行される任意の画像生成（ComfyUI）と生成進捗表示
-- セッション履歴（SQLite）
+- セッション履歴（SQLite）とセッションの選択削除
 - システムプロンプト / max_tokens を UI から設定
 - LLM の起動/停止を GUI から管理
 

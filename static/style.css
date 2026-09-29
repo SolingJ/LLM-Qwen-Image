@@ -55,7 +55,8 @@ button.primary:hover { background: #0d8a6b; }
 
 #session-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
 .session-item {
-  padding: 8px 10px;
+  position: relative;
+  padding: 8px 44px 8px 10px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
@@ -66,6 +67,14 @@ button.primary:hover { background: #0d8a6b; }
 .session-item:hover { background: #dde0e2; }
 .session-item.active { background: #d9dee2; border-color: #b9c2c9; color: var(--text); }
 .session-item .meta { font-size: 11px; color: #8a9097; margin-top: 2px; }
+.session-delete {
+  position: absolute;
+  top: 7px;
+  right: 6px;
+  padding: 2px 7px;
+  font-size: 11px;
+  border-radius: 6px;
+}
 
 main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 #chat-header {
